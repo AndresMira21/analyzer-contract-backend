@@ -66,7 +66,7 @@ public class Contract {
         this.risks = risks;
     }
 
-    public double getRiskScore() {
+    public Double getRiskScore() {
         return riskScore;
     }
     public void setRiskScore(double riskScore) {
