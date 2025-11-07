@@ -35,7 +35,7 @@ public class GeminiService {
     @Value("${gemini.model}")
     private String model;
 
-    @Value("${gemini.max.tokens:8000}")
+    @Value("${gemini.max.tokens:10000}")
     private int maxTokens;
 
     @Value("${gemini.temperature:0.3}")

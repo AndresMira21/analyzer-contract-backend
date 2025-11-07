@@ -253,4 +253,21 @@ public class AIAnalysisService {
             return "Lo siento, no pude procesar tu pregunta en este momento. Por favor, intenta de nuevo o consulta con un profesional legal.";
         }
     }
+
+    public String generateContent(String prompt) {
+        try {
+            log.info("Generando contenido desde AIAnalysisService (prompt directo).");
+
+            if (prompt == null || prompt.isBlank()) {
+                return "El prompt no puede estar vacío.";
+            }
+
+            // Llama al servicio Gemini directamente
+            return geminiService.generateContent(prompt);
+
+        } catch (Exception e) {
+            log.error("Error al generar contenido en AIAnalysisService: {}", e.getMessage(), e);
+            return "Error al generar contenido con la IA: " + e.getMessage();
+        }
+    }
 }

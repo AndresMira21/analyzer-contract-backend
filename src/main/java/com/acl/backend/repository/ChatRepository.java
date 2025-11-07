@@ -9,9 +9,9 @@ import com.acl.backend.model.ChatMessage;
 
 public interface ChatRepository extends MongoRepository<ChatMessage, String> {
 
-    List<ChatMessage> findContractIdOrderByTimestampAsc(String contractId);
+    List<ChatMessage> findByContractIdOrderByTimestampAsc(String contractId);
 
-    List<ChatMessage> findByUserIdOrderByTimestampAsc(Long userId);
+    List<ChatMessage> findByUserIdOrderByTimestampDesc(Long userId);
 
     List<ChatMessage> findByContractIdAndUserIdOrderByTimestampAsc(String contractId, Long userId);
 
