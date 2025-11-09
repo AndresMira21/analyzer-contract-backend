@@ -11,11 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.acl.backend.data.GeminiData.*;
-import com.acl.backend.data.GeminiData.GeminiResponse;
-import com.acl.backend.data.GeminiData.GeminiRequest;
-
 import com.google.gson.Gson;
-
 import reactor.core.publisher.Mono;
 
 @Service
@@ -29,16 +25,16 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
+    @Value("${gemini.api.url:https://generativelanguage.googleapis.com}")
     private String apiUrl;
 
-    @Value("${gemini.model}")
+    @Value("${gemini.api.model:gemini-2.5-flash}")
     private String model;
 
-    @Value("${gemini.max.tokens:10000}")
+    @Value("${gemini.api.max-tokens:10000}")
     private int maxTokens;
 
-    @Value("${gemini.temperature:0.3}")
+    @Value("${gemini.api.temperature:0.2}")
     private double temperature;
 
     public GeminiService(WebClient.Builder webClientBuilder){
@@ -57,7 +53,7 @@ public class GeminiService {
             GeminiRequest request = new GeminiRequest(prompt, temperature, maxTokens);
 
             String endpoint = String.format("/v1beta/models/%s:generateContent?key=%s",
-                                        model, apiKey);
+                    model, apiKey);
 
             GeminiResponse response = webClient.post()
                     .uri(endpoint)
