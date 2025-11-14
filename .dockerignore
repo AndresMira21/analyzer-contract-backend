@@ -1,0 +1,45 @@
+target/
+!target/*.jar
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+.settings
+.classpath
+.project
+*.iml
+*.iws
+*.ipr
+
+# Documentación
+*.md
+README.md
+HELP.md
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Archivos sensibles
+.env
+.env.local
+.env.production
+
+# Logs y datos
+*.log
+uploads/
+logs/
+temp/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
