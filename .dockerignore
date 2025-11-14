@@ -1,3 +1,4 @@
+# Archivos compilados
 target/
 !target/*.jar
 
@@ -9,7 +10,7 @@ target/
 .gitignore
 .gitattributes
 
-# IDE
+# IDEs
 .idea
 .vscode
 .settings
@@ -23,6 +24,7 @@ target/
 *.md
 README.md
 HELP.md
+RAILWAY_SETUP.md
 
 # Sistema
 .DS_Store
@@ -32,14 +34,19 @@ Thumbs.db
 .env
 .env.local
 .env.production
+.env.development
 
-# Logs y datos
+# Logs y datos locales
 *.log
 uploads/
 logs/
 temp/
 
 # Docker
-Dockerfile
-.dockerignore
 docker-compose.yml
+
+# Railway
+railway.toml
+
+# Tests
+src/test/

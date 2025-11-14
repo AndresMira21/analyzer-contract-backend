@@ -1,45 +1,50 @@
-
-# Usa Maven con Java 21 para compilar
+# ==========================================
+# ETAPA 1: Construcción con Maven
+# ==========================================
 FROM maven:3.9-eclipse-temurin-21 AS build
 
-# Establece directorio de trabajo
 WORKDIR /app
 
-# Copia archivos de Maven (para cachear dependencias)
+# Copiar archivos de Maven para cachear dependencias
 COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw .
 
-# Descarga dependencias (se cachea si pom.xml no cambia)
+# Dar permisos de ejecución al Maven Wrapper
+RUN chmod +x mvnw
+
+# Descargar dependencias (se cachea si pom.xml no cambia)
 RUN ./mvnw dependency:go-offline -B
 
-# Copia el código fuente
+# Copiar el código fuente
 COPY src ./src
 
-# Compila la aplicación (sin tests para build más rápido)
+# Compilar la aplicación (sin tests para build más rápido)
 RUN ./mvnw clean package -DskipTests
 
-
-# Usa solo JRE (más ligero que JDK)
+# ==========================================
+# ETAPA 2: Imagen de producción con JRE
+# ==========================================
 FROM eclipse-temurin:21-jre-alpine
 
-# Instala curl para health checks
+# Instalar curl para health checks y configurar zona horaria
 RUN apk add --no-cache curl tzdata && \
-    ln -sf /usr/share/zoneinfo/America/Bogota /etc/localtime
+    ln -sf /usr/share/zoneinfo/America/Bogota /etc/localtime && \
+    echo "America/Bogota" > /etc/timezone
 
 WORKDIR /app
 
-# Crea usuario no-root (seguridad)
+# Crear usuario no-root para seguridad
 RUN addgroup -S spring && adduser -S spring -G spring
 
-# Copia el JAR compilado desde la etapa anterior
+# Copiar el JAR compilado desde la etapa de build
 COPY --from=build /app/target/*.jar app.jar
 
-# Crea directorios necesarios
+# Crear directorios necesarios
 RUN mkdir -p /app/uploads /app/logs && \
     chown -R spring:spring /app
 
-# Cambia al usuario no-root
+# Cambiar al usuario no-root
 USER spring:spring
 
 # Variables de entorno por defecto
@@ -48,10 +53,11 @@ ENV JAVA_OPTS="-Xmx512m -Xms256m" \
 
 # Health check automático
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8080}/actuator/health || exit 1
 
-# Puerto de la aplicación
-EXPOSE 8080
+# Railway proporciona la variable PORT automáticamente
+EXPOSE ${PORT:-8080}
 
-# Comando para iniciar la app
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
+# Comando para iniciar la aplicación
+# Railway inyecta PORT automáticamente, por eso usamos $PORT
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -jar app.jar"]
