@@ -1,1 +1,59 @@
-// docker
+version: '3.8'
+
+services:
+  # ========== BACKEND SPRING BOOT ==========
+  # Conecta a Supabase y Atlas en la nube
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analyzer-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Profile
+      - SPRING_PROFILES_ACTIVE=dev
+      
+      # PostgreSQL - SUPABASE (Cloud)
+      - DATABASE_URL=${DATABASE_URL}
+      
+      # MongoDB - ATLAS (Cloud)
+      - MONGO_URI=${MONGO_URI}
+      
+      # JWT Secret
+      - JWT_SECRET=${JWT_SECRET}
+      
+      # Gemini API
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_URL=${GEMINI_API_URL}
+      - GEMINI_API_MODEL=${GEMINI_API_MODEL}
+      - GEMINI_API_MAX_TOKENS=${GEMINI_API_MAX_TOKENS}
+      - GEMINI_API_TEMPERATURE=${GEMINI_API_TEMPERATURE}
+      
+      # Servidor
+      - SERVER_PORT=8080
+      
+      # Análisis con IA
+      - ANALYSIS_USE_AI=true
+      
+      # JVM Options
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    
+    networks:
+      - analyzer-network
+    
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  analyzer-network:
+    driver: bridge
