@@ -59,7 +59,7 @@ RUN mkdir -p /app/uploads /app/logs && \
 USER spring:spring
 
 # Variables de entorno para JVM
-ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0" \
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djdk.tls.client.protocols=TLSv1.2 -Dhttps.protocols=TLSv1.2" \
     SPRING_PROFILES_ACTIVE=prod
 
 # Health check
