@@ -17,8 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.acl.backend.security.JwtAuthenticationFilter;
 import com.acl.backend.service.CustomUserDetailsService;
-import org.springframework.web.cors.CorsConfigurationSource;
-
 
 @Configuration
 @EnableMethodSecurity
@@ -26,34 +24,48 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
-    private final CorsConfigurationSource corsConfigurationSource;
+    private final CorsConfig corsConfig;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
-                          CustomUserDetailsService userDetailsService,
-                          CorsConfigurationSource corsConfigurationSource) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthFilter,
+            CustomUserDetailsService userDetailsService,
+            CorsConfig corsConfig
+    ) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
-        this.corsConfigurationSource = corsConfigurationSource;
+        this.corsConfig = corsConfig;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Endpoints públicos
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/swagger-ui.html", "/swagger-ui/**",
-                                "/v3/api-docs/**", "/actuator/health"
+                                "/v3/api-docs/**",
+                                "/actuator/health"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/contracts/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
+
+                // Filtro JWT
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
+
     @Bean
     public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
