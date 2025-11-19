@@ -45,11 +45,10 @@ public class AuthController {
         user.setFullName(req.getFullName());
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole("USER");
         userRepository.save(user);
 
         String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthData.AuthResponse(token, user.getFullName(), user.getEmail(), user.getRole()));
+        return ResponseEntity.ok(new AuthData.AuthResponse(token, user.getFullName(), user.getEmail()));
     }
 
     @PostMapping("/login")
@@ -64,6 +63,6 @@ public class AuthController {
 
         User user = userRepository.findByEmail(req.getEmail()).orElseThrow();
         String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthData.AuthResponse(token, user.getFullName(), user.getEmail(), user.getRole()));
+        return ResponseEntity.ok(new AuthData.AuthResponse(token, user.getFullName(), user.getEmail()));
     }
 }
