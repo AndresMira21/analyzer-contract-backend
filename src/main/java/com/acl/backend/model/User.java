@@ -33,9 +33,6 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private String role = "USER";
-
-    @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
     public Long getId() {
@@ -62,12 +59,6 @@ public class User implements UserDetails {
     }
     public void setPassword(String password) {
         this.password = password;
-    }
-    public String getRole() {
-        return role;
-    }
-    public void setRole(String role) {
-        this.role = role;
     }
     public Instant getCreatedAt() {
         return createdAt;
