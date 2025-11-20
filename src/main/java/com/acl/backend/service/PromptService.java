@@ -2,232 +2,218 @@ package com.acl.backend.service;
 
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class PromptService {
 
     /**
-     * Prompt para análisis completo del contrato
+     * Marco legal para Colombia, resumido para optimizar tokens.
+     */
+    private final String legalFramework = """
+        MARCO LEGAL COLOMBIANO PARA CLASIFICACIÓN:
+
+        - Laborales → Código Sustantivo del Trabajo (CST), jurisprudencia laboral.
+        - Arrendamiento → Código Civil, Código de Comercio (si es local comercial).
+        - Salud → Ley 100 de 1993, Decreto 780/2016, Ministerio de Salud.
+        - Compraventa → Código Civil, Cámara de Comercio (si es mercantil).
+        - Contratos estatales → Ley 80/1993, Ley 1150/2007, Decreto 1082/2015.
+        - Servicios profesionales → Código Civil y Código de Comercio.
+        - Préstamos → Código Civil, reglas de mutuo.
+        - Licencias → Propiedad intelectual, Decisión Andina 351 y Código Civil.
+        - Sociedad → Código de Comercio (sociedades), Registro Mercantil.
+        - Confidencialidad (NDA) → Régimen civil/comercial general.
+        - Otros contratos civiles/comerciales → Código Civil + Código de Comercio.
+        - Contratos financieros → Supervisados por la Superintendencia Financiera.
+        - Contratos administrativos → Estatuto General de Contratación (Ley 80).
+    """;
+
+    /**
+     * Prompt para análisis legal completo con base normativa.
      */
     public String buildAnalysisPrompt(String contractText) {
         return """
-            Eres un experto analista legal especializado en revisión de contratos.
-            Analiza el siguiente contrato y proporciona un análisis EXHAUSTIVO en formato JSON.
-            
+            Eres un abogado experto en contratación en Colombia. 
+            Analiza el contrato considerando su TIPO y MARCO LEGAL aplicable según la legislación colombiana:
+
+            %s
+
             CONTRATO:
             ```
             %s
             ```
-            
-            Debes responder ÚNICAMENTE con un objeto JSON con esta estructura exacta:
+
+            Responde SOLO con un JSON con esta estructura:
+
             {
-              "type": "Tipo de contrato (ej: Laboral, Arrendamiento, Servicios, NDA, Compraventa, etc.)",
+              "type": "Tipo de contrato identificado",
+              "legalBasis": [
+                "Listado de normas colombianas aplicables al tipo de contrato"
+              ],
               "keyClauses": [
-                "Lista de las cláusulas más importantes identificadas en el contrato"
+                "Cláusulas más relevantes encontradas"
               ],
               "risks": [
-                "Lista detallada de riesgos potenciales, cláusulas abusivas, o aspectos problemáticos"
+                "Riesgos jurídicos específicos según la legislación colombiana"
               ],
-              "riskScore": 85.5,
+              "riskScore": 0-100,
               "recommendations": [
-                "Recomendaciones específicas para mejorar el contrato o proteger al usuario"
+                "Recomendaciones puntuales basadas en el marco legal"
               ],
-              "summary": "Resumen ejecutivo del contrato en 2-3 oraciones"
+              "summary": "Resumen ejecutivo del contrato"
             }
-            
-            CRITERIOS DE EVALUACIÓN:
-            - riskScore: 0-100 (100 = sin riesgos, 0 = muy riesgoso)
-            - Detecta: cláusulas abusivas, penalidades excesivas, falta de límites de responsabilidad
-            - Identifica: obligaciones poco claras, prórrogas automáticas, renuncias a derechos
-            - Verifica: presencia de cláusulas esenciales (terminación, confidencialidad, jurisdicción)
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
-            """.formatted(contractText);
+
+            Consideraciones:
+            - Usa exclusivamente normas colombianas aplicables.
+            - Identifica cláusulas ausentes que deberían existir según la ley.
+            - Evalúa abuso de posición dominante, desequilibrio contractual y riesgos.
+            - El análisis debe ser profesional, técnico y claro.
+            - No incluyas texto fuera del JSON.
+
+        """.formatted(legalFramework, contractText);
     }
 
     /**
-     * Prompt para responder preguntas sobre el contrato (Q&A)
+     * Prompt de preguntas y respuestas sobre el contrato.
      */
     public String buildQuestionPrompt(String contractText, String question) {
         return """
-            Eres un asistente legal experto. Tienes acceso al siguiente contrato:
-            
+            Eres un abogado consultor especializado en contratos colombianos.
+
             CONTRATO:
             ```
             %s
             ```
-            
-            PREGUNTA DEL USUARIO:
-            %s
-            
-            Responde la pregunta de manera clara, precisa y basándote ÚNICAMENTE en el contenido del contrato.
-            Si la información no está en el contrato, indícalo claramente.
-            
-            Proporciona tu respuesta en formato JSON:
+
+            PREGUNTA:
+            "%s"
+
+            Responde SOLO con JSON:
+
             {
-              "answer": "Respuesta detallada a la pregunta",
+              "answer": "Respuesta clara basada únicamente en el contrato",
               "references": [
-                "Citas textuales relevantes del contrato que respaldan tu respuesta"
+                "Cláusulas textuales del contrato que respalden la respuesta"
               ],
-              "confidence": "high/medium/low"
+              "legalContext": [
+                "Normas colombianas aplicables a la pregunta (si corresponden)"
+              ],
+              "confidence": "high | medium | low"
             }
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
+
+            Si el contrato no contiene la respuesta, indícalo explícitamente.
             """.formatted(contractText, question);
     }
 
     /**
-     * Prompt para generar un resumen ejecutivo
+     * Prompt para resumen ejecutivo profesional.
      */
     public String buildSummaryPrompt(String contractText) {
         return """
-            Resume el siguiente contrato de manera ejecutiva y profesional.
-            
+            Resume profesionalmente el contrato con enfoque colombiano.
+
             CONTRATO:
             ```
             %s
             ```
-            
-            Proporciona:
-            1. Tipo de contrato
-            2. Partes involucradas
-            3. Objeto principal
-            4. Plazo/vigencia
-            5. Obligaciones principales de cada parte
-            6. Aspectos financieros (si aplica)
-            7. Condiciones de terminación
-            
-            Responde en formato JSON:
+
+            Devuelve SOLO JSON:
             {
-              "summary": "Resumen ejecutivo completo",
-              "keyPoints": [
-                "Puntos clave del contrato"
-              ],
+              "type": "Tipo de contrato",
+              "legalBasis": ["Normas aplicables al tipo de contrato"],
+              "summary": "Descripción ejecutiva clara",
+              "keyPoints": ["Puntos clave"],
               "parties": ["Parte 1", "Parte 2"],
-              "duration": "Duración o vigencia",
-              "mainObligations": {
-                "parte1": ["obligación 1", "obligación 2"],
-                "parte2": ["obligación 1", "obligación 2"]
-              }
+              "duration": "Vigencia o plazo identificado",
+              "financialTerms": ["Obligaciones económicas"],
+              "termination": ["Condiciones de terminación"]
             }
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
             """.formatted(contractText);
     }
 
     /**
-     * Prompt para comparar dos contratos
+     * Prompt mejorado de comparación entre contratos.
      */
-    public String buildComparisonPrompt(String contract1, String contract2) {
+    public String buildComparisonPrompt(String c1, String c2) {
         return """
-            Eres un analista legal experto. Compara estos dos contratos y encuentra diferencias clave.
-            
+            Eres un abogado especializado en contratación colombiana.
+
             CONTRATO 1:
             ```
             %s
             ```
-            
+
             CONTRATO 2:
             ```
             %s
             ```
-            
-            Analiza y compara:
-            - Cláusulas presentes en uno pero no en otro
-            - Diferencias en términos y condiciones
-            - Cuál contrato es más favorable y por qué
-            - Riesgos relativos de cada uno
-            
-            Responde en formato JSON:
+
+            Compara ambos y devuelve SOLO JSON:
             {
               "differences": [
                 {
-                  "aspect": "Nombre del aspecto",
-                  "contract1": "Qué dice el contrato 1",
-                  "contract2": "Qué dice el contrato 2",
-                  "impact": "high/medium/low"
+                  "aspect": "Cláusula o elemento",
+                  "contract1": "Cómo lo maneja el contrato 1",
+                  "contract2": "Cómo lo maneja el contrato 2",
+                  "impact": "high | medium | low"
                 }
               ],
-              "recommendation": "Cuál contrato es mejor y por qué",
-              "missingInContract1": ["Cláusulas que faltan"],
-              "missingInContract2": ["Cláusulas que faltan"]
+              "whichIsBetter": "1 | 2 | depende",
+              "reason": "Razón jurídica clara",
+              "missingInContract1": ["Cláusulas faltantes"],
+              "missingInContract2": ["Cláusulas faltantes"]
             }
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
-            """.formatted(contract1, contract2);
+            """.formatted(c1, c2);
     }
 
     /**
-     * Prompt para detectar el tipo de contrato
+     * Prompt para detección de tipo contractual con marco legal colombiano.
      */
     public String buildTypeDetectionPrompt(String contractText) {
         return """
-            Identifica el tipo específico de este contrato.
-            
+            Identifica el tipo exacto de contrato y su marco legal colombiano.
+
+            %s
+
             CONTRATO:
             ```
             %s
             ```
-            
-            Clasifícalo en una de estas categorías:
-            - Laboral
-            - Arrendamiento
-            - Servicios Profesionales
-            - Confidencialidad (NDA)
-            - Compraventa
-            - Préstamo
-            - Sociedad
-            - Licencia
-            - Franquicia
-            - Otro (especificar)
-            
-            Responde en formato JSON:
+
+            Devuelve SOLO JSON:
             {
-              "type": "Tipo principal del contrato",
-              "subtype": "Subtipo o clasificación más específica",
-              "confidence": "Porcentaje de confianza (0-100)",
-              "reasoning": "Breve explicación de por qué clasificaste así"
+              "type": "Tipo principal",
+              "subtype": "Subtipo específico",
+              "legalBasis": ["Normas aplicables"],
+              "confidence": "0-100",
+              "reasoning": "Explicación breve"
             }
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
-            """.formatted(contractText);
+            """.formatted(legalFramework, contractText);
     }
 
     /**
-     * Prompt para extraer fechas y plazos importantes
+     * Prompt para extraer fechas del contrato.
      */
     public String buildDatesExtractionPrompt(String contractText) {
         return """
-            Extrae todas las fechas, plazos y términos temporales importantes del contrato.
-            
+            Extrae fechas y plazos relevantes del contrato.
+
             CONTRATO:
             ```
             %s
             ```
-            
-            Identifica:
-            - Fecha de inicio
-            - Fecha de término
-            - Plazos de pago
-            - Periodos de notificación
-            - Plazos de renovación
-            - Cualquier otra fecha relevante
-            
-            Responde en formato JSON:
+
+            Devuelve SOLO JSON:
             {
               "dates": [
                 {
-                  "type": "Tipo de fecha (inicio, término, pago, etc.)",
-                  "date": "Fecha específica o descripción del plazo",
-                  "importance": "high/medium/low"
+                  "type": "inicio | terminación | pago | aviso | renovación",
+                  "value": "Fecha o descripción",
+                  "importance": "high | medium | low"
                 }
               ],
               "criticalDeadlines": [
-                "Fechas límite que no deben pasarse por alto"
+                "Fechas que requieren especial atención"
               ]
             }
-            
-            RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL.
             """.formatted(contractText);
     }
 }

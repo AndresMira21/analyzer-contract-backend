@@ -85,7 +85,7 @@ public class AIAnalysisService {
             // Agregar referencias si existen
             if (json.has("references") && json.get("references").isJsonArray()) {
                 json.getAsJsonArray("references").forEach(ref ->
-                        answers.add("📄 Referencia: " + ref.getAsString())
+                        answers.add("Referencia: " + ref.getAsString())
                 );
             }
 

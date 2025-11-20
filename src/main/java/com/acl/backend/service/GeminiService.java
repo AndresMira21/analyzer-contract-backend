@@ -31,7 +31,7 @@ public class GeminiService {
     @Value("${gemini.api.model:gemini-2.5-flash}")
     private String model;
 
-    @Value("${gemini.api.max-tokens:10000}")
+    @Value("${gemini.api.max-tokens:15000}")
     private int maxTokens;
 
     @Value("${gemini.api.temperature:0.2}")
