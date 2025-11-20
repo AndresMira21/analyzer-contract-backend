@@ -1,5 +1,7 @@
 package com.acl.backend.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,44 +15,52 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}")
+    private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
+
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://https://analyzer-contract-frontend-kohl.vercel.app}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration config = new CorsConfiguration();
 
-        // Dominios permitidos (configurar según tu frontend)
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        // Log para debugging
+        log.info("=== CORS Configuration ===");
+        log.info("Allowed origins from config: {}", allowedOrigins);
 
-        // Métodos HTTP permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
+        // Parsear y agregar orígenes
+        for (String origin : allowedOrigins.split(",")) {
+            String trimmed = origin.trim();
+            if (!trimmed.isEmpty()) {
+                if (trimmed.contains("*")) {
+                    config.addAllowedOriginPattern(trimmed);
+                    log.info("Added origin pattern: {}", trimmed);
+                } else {
+                    config.addAllowedOrigin(trimmed);
+                    log.info("Added origin: {}", trimmed);
+                }
+            }
+        }
+
+        // Métodos permitidos
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With"
-        ));
+        config.setAllowedHeaders(Arrays.asList("*"));
 
-        // Exponer headers de respuesta
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Disposition"
-        ));
+        // Headers expuestos
+        config.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
 
         // Permitir credenciales
-        configuration.setAllowCredentials(true);
+        config.setAllowCredentials(true);
 
-        // Tiempo de cacheo de preflight (1 hora)
-        configuration.setMaxAge(3600L);
+        // Cache de preflight
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
+
+        log.info("=== CORS Configuration Complete ===");
 
         return source;
     }
