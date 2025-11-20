@@ -10,21 +10,19 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class CorsConfig {
 
     private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://https://analyzer-contract-frontend-kohl.vercel.app}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,https://analyzer-contract-frontend-kohl.vercel.app}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Log para debugging
         log.info("=== CORS Configuration ===");
         log.info("Allowed origins from config: {}", allowedOrigins);
 
@@ -42,25 +40,38 @@ public class CorsConfig {
             }
         }
 
-        // Métodos permitidos
+        // Métodos permitidos - IMPORTANTE: Incluir OPTIONS para preflight
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        // Headers permitidos
-        config.setAllowedHeaders(Arrays.asList("*"));
+        // Headers permitidos - IMPORTANTE: Authorization para JWT
+        config.setAllowedHeaders(Arrays.asList(
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With",
+                "Accept",
+                "Origin"
+        ));
 
         // Headers expuestos
-        config.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
+        config.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Disposition",
+                "X-Total-Count"
+        ));
 
-        // Permitir credenciales
+        // Permitir credenciales (importante para cookies/auth)
         config.setAllowCredentials(true);
 
-        // Cache de preflight
+        // Cache de preflight en segundos
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         log.info("=== CORS Configuration Complete ===");
+        log.info("✓ CORS habilitado para todos los endpoints");
+        log.info("✓ Métodos permitidos: GET, POST, PUT, PATCH, DELETE, OPTIONS");
+        log.info("✓ Headers permitidos: Content-Type, Authorization, X-Requested-With, Accept, Origin");
 
         return source;
     }

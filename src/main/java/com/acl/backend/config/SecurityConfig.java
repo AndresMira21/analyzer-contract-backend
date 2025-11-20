@@ -36,31 +36,34 @@ public class SecurityConfig {
         this.corsConfig = corsConfig;
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
 
+                // Aplicar CORS antes que cualquier otra cosa
                 .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
 
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        // Permitir preflight requests (OPTIONS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Endpoints públicos
+                        // Endpoints públicos sin autenticación
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/actuator/health"
                         ).permitAll()
 
+                        // Todos los demás endpoints requieren autenticación
                         .anyRequest().authenticated()
                 )
 
-                // Filtro JWT
+                // Agregar filtro JWT ANTES del filtro de autenticación
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
