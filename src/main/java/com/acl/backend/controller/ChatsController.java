@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,6 +57,10 @@ public class ChatsController {
         public String contractId;
     }
 
+    public static class UpdateRequest {
+        public String title;
+    }
+
     @PostMapping
     public ResponseEntity<Conversation> create(@RequestBody CreateRequest req,
                                                @AuthenticationPrincipal UserDetails userDetails) {
@@ -69,6 +74,27 @@ public class ChatsController {
         c.setTitle(req.title);
         c.setCreatedAt(req.date != null ? req.date : Instant.now());
         c.setContractId(req.contractId);
+        Conversation saved = conversationRepository.save(c);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Conversation> update(@PathVariable String id,
+                                               @RequestBody UpdateRequest req,
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Conversation c = conversationRepository.findById(id).orElse(null);
+        if (c == null) return ResponseEntity.notFound().build();
+        if (c.getUserId() != null && !c.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+        if (req.title != null && !req.title.trim().isEmpty()) {
+            c.setTitle(req.title.trim());
+        }
         Conversation saved = conversationRepository.save(c);
         return ResponseEntity.ok(saved);
     }
