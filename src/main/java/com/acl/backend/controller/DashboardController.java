@@ -27,14 +27,17 @@ public class DashboardController {
     private final ContractService contractService;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
+    private final com.acl.backend.repository.DeletedContractRepository deletedContractRepository;
 
     public DashboardController(
             ContractService contractService,
             UserRepository userRepository,
-            ChatRepository chatRepository) {
+            ChatRepository chatRepository,
+            com.acl.backend.repository.DeletedContractRepository deletedContractRepository) {
         this.contractService = contractService;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
+        this.deletedContractRepository = deletedContractRepository;
     }
 
     /**
@@ -56,7 +59,9 @@ public class DashboardController {
         DashboardStats stats = new DashboardStats();
 
         // Estadísticas básicas
+        long deletedCount = deletedContractRepository.countByUserId(user.getId());
         stats.setTotalContracts(contracts.size());
+        stats.setDeletedContracts(deletedCount);
         stats.setHighRiskContracts(
                 contracts.stream()
                         .filter(c -> c.getRiskScore() != null && c.getRiskScore() < 50)
@@ -211,6 +216,7 @@ public class DashboardController {
         private double averageRiskScore;
         private long recentContracts;
         private long totalChatMessages;
+        private long deletedContracts;
         private List<ContractSummary> highestRiskContracts;
         private Map<String, Long> commonClauses;
         private Map<String, Long> commonRisks;
@@ -239,6 +245,8 @@ public class DashboardController {
         public long getTotalChatMessages() { return totalChatMessages; }
         public void setTotalChatMessages(long totalChatMessages) { this.totalChatMessages = totalChatMessages; }
 
+        public long getDeletedContracts() { return deletedContracts; }
+        public void setDeletedContracts(long deletedContracts) { this.deletedContracts = deletedContracts; }
 
         public List<ContractSummary> getHighestRiskContracts() { return highestRiskContracts; }
         public void setHighestRiskContracts(List<ContractSummary> highestRiskContracts) { this.highestRiskContracts = highestRiskContracts; }

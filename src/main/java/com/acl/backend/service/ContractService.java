@@ -51,6 +51,10 @@ public class ContractService {
         return contractRepository.findByUserId(userId);
     }
 
+    public void deleteById(String id) {
+        contractRepository.deleteById(id);
+    }
+
     /**
      * Detecta cláusulas importantes que faltan en el contrato
      */
