@@ -2,8 +2,6 @@ package com.acl.backend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,15 +51,30 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthData.AuthResponse> login(@Valid @RequestBody AuthData.LoginRequest req) {
+        User user = userRepository.findByEmail(req.getEmail()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).build();
+        }
+
+        boolean okCredentials = false;
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-            );
-        } catch (BadCredentialsException e) {
+            okCredentials = passwordEncoder.matches(req.getPassword(), user.getPassword());
+        } catch (Exception ignored) { okCredentials = false; }
+
+        if (!okCredentials) {
+            String stored = user.getPassword();
+            boolean looksHashed = stored != null && stored.startsWith("$2");
+            if (!looksHashed && stored != null && req.getPassword() != null && stored.equals(req.getPassword())) {
+                user.setPassword(passwordEncoder.encode(req.getPassword()));
+                try { userRepository.save(user); } catch (Exception ignored) {}
+                okCredentials = true;
+            }
+        }
+
+        if (!okCredentials) {
             return ResponseEntity.status(401).build();
         }
 
-        User user = userRepository.findByEmail(req.getEmail()).orElseThrow();
         String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthData.AuthResponse(token, user.getFullName(), user.getEmail()));
     }
