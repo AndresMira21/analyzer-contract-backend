@@ -3,7 +3,6 @@ package com.acl.backend.controller;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -78,6 +77,7 @@ public class ChatController {
         userMessage.setUserId(userId);
         userMessage.setMessage(request.getMessage());
         userMessage.setRole("user");
+        userMessage.setConversationId(request.getConversationId());
         userMessage.setTimestamp(Instant.now());
         chatRepository.save(userMessage);
 
@@ -95,6 +95,7 @@ public class ChatController {
         assistantMessage.setUserId(userId);
         assistantMessage.setMessage(responseText);
         assistantMessage.setRole("assistant");
+        assistantMessage.setConversationId(request.getConversationId());
         assistantMessage.setTimestamp(Instant.now());
         chatRepository.save(assistantMessage);
 
@@ -129,6 +130,7 @@ public class ChatController {
         userMessage.setUserId(userId);
         userMessage.setMessage(request.getMessage());
         userMessage.setRole("user");
+        userMessage.setConversationId(request.getConversationId());
         userMessage.setTimestamp(Instant.now());
         chatRepository.save(userMessage);
 
@@ -141,6 +143,7 @@ public class ChatController {
         assistantMessage.setUserId(userId);
         assistantMessage.setMessage(answer);
         assistantMessage.setRole("assistant");
+        assistantMessage.setConversationId(request.getConversationId());
         assistantMessage.setTimestamp(Instant.now());
         chatRepository.save(assistantMessage);
 
@@ -227,15 +230,16 @@ public class ChatController {
 
     private String buildGeneralLegalPrompt(String question) {
         return String.format("""
-            Eres un asistente legal experto. Responde la siguiente pregunta legal de manera clara y precisa.
+            Eres un asistente legal experto. Solo responde preguntas sobre temas legales.
+            
+            Si la pregunta NO es sobre derecho o asuntos legales, responde únicamente:
+            "No puedo responder eso. Solo asisto con preguntas sobre temas legales."
+            
+            Si la pregunta SÍ es sobre derecho, responde de forma clara y profesional.
+            Si requiere asesoría legal específica, recomienda consultar un abogado.
             
             PREGUNTA:
             %s
-            
-            Proporciona una respuesta profesional y educativa. Si la pregunta requiere asesoría legal específica,
-            recomienda consultar con un abogado profesional.
-            
-            Responde de forma directa, sin formato JSON.
             """, question);
     }
 

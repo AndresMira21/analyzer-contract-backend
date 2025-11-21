@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.acl.backend.data.GeminiData.*;
+import com.acl.backend.data.GeminiData.GeminiRequest;
+import com.acl.backend.data.GeminiData.GeminiResponse;
 import com.google.gson.Gson;
+
 import reactor.core.publisher.Mono;
 
 @Service

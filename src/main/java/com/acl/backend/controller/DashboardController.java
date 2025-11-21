@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.acl.backend.model.Contract;
 import com.acl.backend.model.User;
 import com.acl.backend.repository.ChatRepository;
-import com.acl.backend.repository.NotificationRepository;
 import com.acl.backend.repository.UserRepository;
 import com.acl.backend.service.ContractService;
 
@@ -28,17 +27,14 @@ public class DashboardController {
     private final ContractService contractService;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
-    private final NotificationRepository notificationRepository;
 
     public DashboardController(
             ContractService contractService,
             UserRepository userRepository,
-            ChatRepository chatRepository,
-            NotificationRepository notificationRepository) {
+            ChatRepository chatRepository) {
         this.contractService = contractService;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
-        this.notificationRepository = notificationRepository;
     }
 
     /**
@@ -107,10 +103,6 @@ public class DashboardController {
                 .sum();
         stats.setTotalChatMessages(totalChatMessages);
 
-        // Notificaciones no leídas
-        long unreadNotifications = notificationRepository
-                .countByUserIdAndReadFalse(user.getId());
-        stats.setUnreadNotifications(unreadNotifications);
 
         // Top 5 contratos con más riesgo
         List<ContractSummary> highestRiskContracts = contracts.stream()
@@ -219,7 +211,6 @@ public class DashboardController {
         private double averageRiskScore;
         private long recentContracts;
         private long totalChatMessages;
-        private long unreadNotifications;
         private List<ContractSummary> highestRiskContracts;
         private Map<String, Long> commonClauses;
         private Map<String, Long> commonRisks;
@@ -248,8 +239,6 @@ public class DashboardController {
         public long getTotalChatMessages() { return totalChatMessages; }
         public void setTotalChatMessages(long totalChatMessages) { this.totalChatMessages = totalChatMessages; }
 
-        public long getUnreadNotifications() { return unreadNotifications; }
-        public void setUnreadNotifications(long unreadNotifications) { this.unreadNotifications = unreadNotifications; }
 
         public List<ContractSummary> getHighestRiskContracts() { return highestRiskContracts; }
         public void setHighestRiskContracts(List<ContractSummary> highestRiskContracts) { this.highestRiskContracts = highestRiskContracts; }

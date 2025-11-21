@@ -15,15 +15,12 @@ public class ContractService {
 
     private final ContractRepository contractRepository;
     private final NLPAnalysisService nlpAnalysisService;
-    private final NotificationService notificationService;
 
     public ContractService(
             ContractRepository contractRepository,
-            NLPAnalysisService nlpAnalysisService,
-            NotificationService notificationService) {
+            NLPAnalysisService nlpAnalysisService) {
         this.contractRepository = contractRepository;
         this.nlpAnalysisService = nlpAnalysisService;
-        this.notificationService = notificationService;
     }
 
     public Contract saveWithAnalysis(String name, String content, Long userId) {
@@ -39,18 +36,6 @@ public class ContractService {
         c.setUserId(userId);
 
         Contract saved = contractRepository.save(c);
-
-        // Enviar notificaciones
-        notificationService.notifyAnalysisComplete(saved);
-        notificationService.notifyHighRisk(saved, analysis.getRiskScore());
-        notificationService.notifySpecificRisks(saved, analysis.getRisks());
-
-        // Detectar cláusulas faltantes importantes
-        List<String> missingClauses = detectMissingClauses(analysis);
-        if (!missingClauses.isEmpty()) {
-            notificationService.notifyMissingClauses(saved, missingClauses);
-        }
-
         return saved;
     }
 

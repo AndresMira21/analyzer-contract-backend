@@ -1,7 +1,7 @@
 package com.acl.backend.repository;
 
-import java.util.List;
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -20,5 +20,6 @@ public interface ChatRepository extends MongoRepository<ChatMessage, String> {
     void deleteByContractId(String contractId);
     void deleteByUserId(Long userId);
     Long countByContractId(String contractId);
+    void deleteByConversationId(String conversationId);
 }
 
