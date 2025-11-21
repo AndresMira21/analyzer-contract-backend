@@ -20,6 +20,9 @@ public class Conversation {
     @Indexed
     private Instant createdAt;
 
+    @Indexed
+    private String contractId;
+
     public Conversation() {
         this.createdAt = Instant.now();
     }
@@ -41,5 +44,7 @@ public class Conversation {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-}
 
+    public String getContractId() { return contractId; }
+    public void setContractId(String contractId) { this.contractId = contractId; }
+}

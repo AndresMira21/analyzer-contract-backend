@@ -53,6 +53,7 @@ public class ChatsController {
         @NotBlank
         public String title;
         public Instant date;
+        public String contractId;
     }
 
     @PostMapping
@@ -67,6 +68,7 @@ public class ChatsController {
         c.setUserId(user.getId());
         c.setTitle(req.title);
         c.setCreatedAt(req.date != null ? req.date : Instant.now());
+        c.setContractId(req.contractId);
         Conversation saved = conversationRepository.save(c);
         return ResponseEntity.ok(saved);
     }
@@ -92,4 +94,3 @@ public class ChatsController {
         return ResponseEntity.ok().build();
     }
 }
-
